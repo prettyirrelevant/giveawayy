@@ -42,3 +42,8 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     objects = UserManager()
+
+    # @property
+    # def profile_url(self):
+    #     hex_name = self.get_full_name().encode().hex()
+    #     return f"https://avatars.dicebear.com/api/bottts/{hex_name}.svg?size=16"

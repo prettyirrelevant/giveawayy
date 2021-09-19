@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
+from django.contrib.messages import constants as messages
+from django.urls import reverse_lazy
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = "django-insecure-1kf!1b$^k3$cbg!pm(s*^omit&i_%jcctzb@dx-5g8p!oz#y!g"
@@ -27,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "crispy_forms",
+    "crispy_bootstrap5",
     "accounts",
 ]
 
@@ -41,6 +46,14 @@ MIDDLEWARE = [
 ]
 
 AUTH_USER_MODEL = "accounts.User"
+
+AUTHENTICATION_BACKENDS = ["accounts.backends.EmailBackend"]
+
+LOGIN_URL = reverse_lazy("accounts:login")
+
+LOGIN_REDIRECT_URL = reverse_lazy("core:index")
+
+LOGOUT_REDIRECT_URL = reverse_lazy("core:index")
 
 ROOT_URLCONF = "giveaway_config.urls"
 
@@ -97,3 +110,23 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "alert alert-primary",
+    messages.INFO: "alert alert-info",
+    messages.SUCCESS: "alert alert-success",
+    messages.ERROR: "alert alert-danger",
+    messages.WARNING: "alert alert-warning",
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+EMAIL_HOST = "localhost"
+
+EMAIL_PORT = 25
+
+DEFAULT_FROM_EMAIL = "noreply@giveaway.app"

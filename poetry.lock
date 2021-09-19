@@ -10,6 +10,21 @@ python-versions = ">=3.6"
 tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
 
 [[package]]
+name = "crispy-bootstrap5"
+version = "0.5"
+description = "Bootstrap5 template pack for django-crispy-forms"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+django = ">=2.2"
+django-crispy-forms = ">=1.12.0"
+
+[package.extras]
+test = ["pytest", "pytest-django"]
+
+[[package]]
 name = "django"
 version = "3.2.7"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
@@ -89,12 +104,16 @@ python-versions = ">=3.5"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "eb3aef11a7ada2b758fc0649c4ad9d30e4747932b3b61576370d7f8ede82ed36"
+content-hash = "320fc4ce4e6fbc740adc549f5b44e88c421e8036106d7bd42c7c6a4e93de1c35"
 
 [metadata.files]
 asgiref = [
     {file = "asgiref-3.4.1-py3-none-any.whl", hash = "sha256:ffc141aa908e6f175673e7b1b3b7af4fdb0ecb738fc5c8b88f69f055c2415214"},
     {file = "asgiref-3.4.1.tar.gz", hash = "sha256:4ef1ab46b484e3c706329cedeff284a5d40824200638503f5768edb6de7d58e9"},
+]
+crispy-bootstrap5 = [
+    {file = "crispy-bootstrap5-0.5.tar.gz", hash = "sha256:e0d4153ddc380a2d2fce3e2a85cd2f167a07ea9596b2c8011455d7627a49eb9e"},
+    {file = "crispy_bootstrap5-0.5-py3-none-any.whl", hash = "sha256:d00209d06b2dd24ff34ddf7f5f348ae0f2d0bf392a964e8c1fa21ee8cef7f849"},
 ]
 django = [
     {file = "Django-3.2.7-py3-none-any.whl", hash = "sha256:e93c93565005b37ddebf2396b4dc4b6913c1838baa82efdfb79acedd5816c240"},
