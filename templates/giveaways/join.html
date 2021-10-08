@@ -5,47 +5,47 @@
     <div class="col-lg-10">
         {% comment %} If the giveaway is not public and if the giveaway's slug is not present in `request.session`  {% endcomment %}
         {% if not giveaway.is_public and not giveaway.slug in request.session %}
-            <div class="card mt-5">
-                <div class="card-header text-center lead fw-bold">
-                    Enter <strong>{{ giveaway.title }}</strong>'s passcode to join this giveaway.
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ private_giveaway_entry_form|crispy }}
-                        <button class="btn btn-success d-block w-100 fw-bold">Continue</button>
-                    </form>
-                </div>
+        <div class="card mt-5">
+            <div class="card-header text-center lead fw-bold">
+                Enter <strong>{{ giveaway.title }}</strong>'s passcode to join this giveaway.
             </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ private_giveaway_entry_form|crispy }}
+                    <button class="btn btn-success d-block w-100 fw-bold">Continue</button>
+                </form>
+            </div>
+        </div>
         {% comment %} If the giveaway is public or password has already been entered {% endcomment %}
         {% elif not 'account_number' in request.session and giveaway.is_public or giveaway.slug in request.session %}
-            <div class="card mt-5">
-                <div class="card-header text-center lead fw-bold">
-                    Participant's Detail for <strong>{{ giveaway.title }}</strong>'s giveaway.
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ join_giveaway_form|crispy }}
-                        <button class="btn btn-success d-block w-100 fw-bold">{% if giveaway.is_category_quiz %} Take Quiz {% else %} Join Giveaway {% endif %}</button>
-                    </form>
-                </div>
+        <div class="card mt-5">
+            <div class="card-header text-center lead fw-bold">
+                Participant's Detail for <strong>{{ giveaway.title }}</strong>'s giveaway.
             </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ join_giveaway_form|crispy }}
+                    <button class="btn btn-success d-block w-100 fw-bold">{% if giveaway.is_category_quiz %} Take Quiz {% else %} Join Giveaway {% endif %}</button>
+                </form>
+            </div>
+        </div>
         {% comment %} If the giveaway is public/private and requires quiz and participant details have been taken {% endcomment %}
         {% elif 'account_number' in request.session and giveaway.is_category_quiz %}
-            <h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: 20 seconds</h4>
-            <div class="card my-3">
-                <div class="card-header text-center lead fw-bold">
-                    Quiz for <strong>{{ giveaway.title }}</strong>'s giveaway.
-                </div>
-                <div class="card-body">
-                    <form id="quiz-form" method="post" novalidate>
-                        {% csrf_token %}
-                        {{ quiz_form|crispy }}
-                        <button class="btn btn-success d-block w-100 fw-bold"> Join Giveaway</button>
-                    </form>
-                </div>
+        <h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: 20 seconds</h4>
+        <div class="card my-3">
+            <div class="card-header text-center lead fw-bold">
+                Quiz for <strong>{{ giveaway.title }}</strong>'s giveaway.
             </div>
+            <div class="card-body">
+                <form id="quiz-form" method="post" novalidate>
+                    {% csrf_token %}
+                    {{ quiz_form|crispy }}
+                    <button class="btn btn-success d-block w-100 fw-bold"> Join Giveaway</button>
+                </form>
+            </div>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -53,23 +53,23 @@
 {% block scripts %}
 {% if 'account_number' in request.session and giveaway.is_category_quiz %}
 <script>
-const timer = document.querySelector("#timer");
-const timerInput = document.querySelector("#id_quiz_pre-timer");
-const form = document.querySelector("#quiz-form");
+    const timer = document.querySelector("#timer");
+    const timerInput = document.querySelector("#id_quiz_pre-timer");
+    const form = document.querySelector("#quiz-form");
 
-let t = 20;
+    let t = 20;
 
-const _ = setInterval(() => {
-    t -= 1;
-    timer.innerHTML = `<h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: ${t} seconds</h4>`;
-    timerInput.value = t;
+    const _ = setInterval(() => {
+        t -= 1;
+        timer.innerHTML = `<h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: ${t} seconds</h4>`;
+        timerInput.value = t;
 
-    if (t === 0) {
-        alert('Ooops! You exhausted your time.')
-        clearInterval(_);
-        form.submit();
-    }
-}, 1000);
+        if (t === 0) {
+            alert('Ooops! You exhausted your time.')
+            clearInterval(_);
+            form.submit();
+        }
+    }, 1000);
 </script>
 {% endif %}
 {% endblock scripts %}

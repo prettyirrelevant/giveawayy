@@ -5,65 +5,72 @@
     <div class="col-lg-10">
         {% if request.user.username == giveaway.creator.username and giveaway.status == GiveawayStatus.CREATED %}
         <div class="alert alert-info" role="alert">
-            <svg class="me-1" width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+            <svg class="me-1" width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
             Top up your giveaway to enable users participate!
         </div>
         {% endif %}
-
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title position-relative">
-        {{ giveaway.title }}
-        {{ giveaway.is_public|colorize_giveaway_visibility }}
-
-    </h5>
-    <h6 class="card-subtitle mb-2 text-muted">{{ giveaway.description }}</h6>
-    <hr>
-    <h6 class="card-subtitle mb-2 text-muted">
-        <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path></svg>
-        Creator: {% if giveaway.is_creator_anonymous %} Anonymous {% else %} @{{ giveaway.creator.username }}{% endif %}
-    </h6>
-    <h6 class="card-subtitle mb-2 text-muted">
-        <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
-        Prize: &#x20A6;{{ giveaway.monetary_prize.amount|floatformat:"2g" }} &#8771; &#x20A6;{{ giveaway.monetary_prize.net_amount|floatformat:"2g" }}
-    </h6>
-    <h6 class="card-subtitle mb-2 text-muted">
-        <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-        Duration: {{ giveaway.end_at|timeuntil }} left!
-    </h6>
-    <h6 class="card-subtitle mb-2 text-muted">
-        <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd"></path><path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"></path></svg>
-        Number of Winners: {{ giveaway.number_of_winners }}
-    </h6>
-    <h6 class="card-subtitle mb-2 text-muted">
-        <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-        Participant(s): {{ giveaway.participants.count }} of {{ giveaway.number_of_participants }}
-
-    </h6>
-    <div>
-        {{ giveaway.status|colorize_giveaway_status }}
-        {{ giveaway.is_category_quiz|colorize_giveaway_contains_quiz }}
-    </div>
-    <hr>
-        {% if request.user.username == giveaway.creator.username and giveaway.status == GiveawayStatus.CREATED %}
-            <a href="{{ topup_url }}" class="float-end btn btn-primary">Top up now!</a>
-        {% endif %}
-
-        {% if request.user.username != giveaway.creator.username and giveaway.status == GiveawayStatus.ACTIVE %}
-            <a href="{% url 'giveaways:join-giveaway' slug=giveaway.slug %}" class="float-end btn btn-success me-2">Join giveaway</a>
-        {% endif %}
-  </div>
-</div>
-
-
-<ul class="nav nav-tabs nav-fill mt-5">
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="#">Participant(s)</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Transactions</a>
-  </li>
-</ul>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title position-relative">
+                    {{ giveaway.title }}
+                    {{ giveaway.is_public|colorize_giveaway_visibility }}
+                </h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ giveaway.description }}</h6>
+                <hr>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                    </svg>
+                    Creator: {% if giveaway.is_creator_anonymous %} Anonymous {% else %} @{{ giveaway.creator.username }}{% endif %}
+                </h6>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Prize: &#x20A6;{{ giveaway.monetary_prize.amount|floatformat:"2g" }} &#8771; &#x20A6;{{ giveaway.monetary_prize.net_amount|floatformat:"2g" }}
+                </h6>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Duration: {{ giveaway.end_at|timeuntil }} left!
+                </h6>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd"></path>
+                        <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"></path>
+                    </svg>
+                    Number of Winners: {{ giveaway.number_of_winners }}
+                </h6>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    <svg width ="24" height="24" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                    </svg>
+                    Participant(s): {{ giveaway.participants.count }} of {{ giveaway.number_of_participants }}
+                </h6>
+                <div>
+                    {{ giveaway.status|colorize_giveaway_status }}
+                    {{ giveaway.is_category_quiz|colorize_giveaway_contains_quiz }}
+                </div>
+                <hr>
+                {% if request.user.username == giveaway.creator.username and giveaway.status == GiveawayStatus.CREATED %}
+                <a href="{{ topup_url }}" class="float-end btn btn-primary">Top up now!</a>
+                {% endif %}
+                {% if request.user.username != giveaway.creator.username and giveaway.status == GiveawayStatus.ACTIVE %}
+                <a href="{% url 'giveaways:join-giveaway' slug=giveaway.slug %}" class="float-end btn btn-success me-2">Join giveaway</a>
+                {% endif %}
+            </div>
+        </div>
+        <ul class="nav nav-tabs nav-fill mt-5">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#">Participant(s)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Transactions</a>
+            </li>
+        </ul>
     </div>
 </div>
 {% endblock content %}
