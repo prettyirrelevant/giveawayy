@@ -151,27 +151,20 @@ class JoinGiveawayView(generic.TemplateView):
         )
 
         if giveaway.is_category_quiz:
-            # checks if there are questions present in session due to an invalid `POST` request.
-            if self.request.session.get("questions") and self.request.method == "POST":
-                context["quiz_form"] = self.quiz_form(
-                    questions=self.request.session.get("questions"), prefix="quiz_pre"
-                )
+            quiz_url = get_quiz_url(giveaway.quiz_category.choice)
+            response = requests.get(quiz_url)
 
-            else:
-                quiz_url = get_quiz_url(giveaway.quiz_category.choice)
-                response = requests.get(quiz_url)
+            if response.status_code == 200:
+                questions, answers = format_questions_and_answers(response.json()["results"])
 
-                if response.status_code == 200:
-                    questions, answers = format_questions_and_answers(response.json()["results"])
+                # store answers in redis
+                r.set(f'quiz:{answers["quiz_id"]}', json.dumps(answers))
 
-                    # store answers in redis
-                    r.set(f'quiz:{answers["quiz_id"]}', json.dumps(answers))
+                # Store the questions in session.
+                # They are deleted on every valid or tampered `POST` request.
+                self.request.session["questions"] = questions
 
-                    # Store the questions in session.
-                    # They are deleted on every **valid** or tampered `POST` request.
-                    self.request.session["questions"] = questions
-
-                    context["quiz_form"] = self.quiz_form(questions=questions, prefix="quiz_pre")
+                context["quiz_form"] = self.quiz_form(questions=questions, prefix="quiz_pre")
 
         return context
 
@@ -196,9 +189,13 @@ class JoinGiveawayView(generic.TemplateView):
             return redirect(reverse("giveaways:join-giveaway", kwargs={"slug": giveaway.slug}))
 
         elif join_giveaway_form.is_valid():
+            # If the giveaway contains quiz. The participant is created with a flag `is_eligible=False`,
+            # the flag will updated when the quiz has been answered.
+            # Otherwise the flag `is_eligible=True` if no quiz is present.
             if giveaway.is_category_quiz:
-                # checks if participant already registered with that account number
-                participant_exists = Participant.objects.filter(
+
+                # checks if participant already registered with that account number for the giveaway
+                participant_exists = giveaway.participants.filter(
                     account_number=join_giveaway_form.cleaned_data.get("account_number")
                 ).exists()
                 if not participant_exists:
@@ -214,7 +211,7 @@ class JoinGiveawayView(generic.TemplateView):
                     None, "You cannot use the same account number multiple times."
                 )
             else:
-                participant_exists = Participant.objects.filter(
+                participant_exists = giveaway.participants.filter(
                     account_number=join_giveaway_form.cleaned_data.get("account_number")
                 ).exists()
                 if not participant_exists:
