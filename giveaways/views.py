@@ -13,25 +13,18 @@ from django.views import generic
 from formtools.wizard import views
 from payments.models import Transaction
 
-from .decorators import giveaway_is_active, giveaway_participants_limit, participant_is_not_creator
-from .forms import (
-    CreateGiveawayAddPasswordForm,
-    CreateGiveawayBasicInformationForm,
-    CreateGiveawayMonetaryPrizeForm,
-    CreateGiveawayQuizCategoryForm,
-    JoinGiveawayForm,
-    JoinGiveawayQuizForm,
-    PrivateGiveawayEntryForm,
-)
+from .decorators import (giveaway_is_active, giveaway_participants_limit,
+                         participant_is_not_creator)
+from .forms import (CreateGiveawayAddPasswordForm,
+                    CreateGiveawayBasicInformationForm,
+                    CreateGiveawayMonetaryPrizeForm,
+                    CreateGiveawayQuizCategoryForm, JoinGiveawayForm,
+                    JoinGiveawayQuizForm, PrivateGiveawayEntryForm)
 from .models import Giveaway, Participant
-from .utils import (
-    calculate_quiz_score,
-    create_new_giveaway,
-    format_questions_and_answers,
-    get_quiz_url,
-    show_add_password_if_not_public,
-    show_quiz_step_if_category,
-)
+from .utils import (calculate_quiz_score, create_new_giveaway,
+                    format_questions_and_answers, get_quiz_url,
+                    show_add_password_if_not_public,
+                    show_quiz_step_if_category)
 
 r = redis.StrictRedis.from_url(settings.REDIS_URL)
 
@@ -91,7 +84,7 @@ class DisplayGiveawayView(generic.DetailView):
                 "amount": str(_object.monetary_prize.amount * 100),
                 "currency": "NGN",
                 "channels": ["card", "bank"],
-                "callback_url": "http://localhost:8000/payments/callback/",
+                "callback_url": settings.PAYSTACK_CALLBACK_URL,
                 "email": _object.creator.email,
             }
 

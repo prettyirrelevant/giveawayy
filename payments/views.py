@@ -15,7 +15,7 @@ from .models import Transaction
 from .tasks import handle_webhook
 
 
-class TopupCallbackView(generic.View):
+class PaystackTopupCallbackView(generic.View):
     def get(self, request, *args, **kwargs):
         txn_ref = request.GET.get("reference")
         if txn_ref:
@@ -74,7 +74,7 @@ class TopupCallbackView(generic.View):
         return redirect(reverse("core:index"))
 
 
-class WebhookView(generic.View):
+class PaystackWebhookView(generic.View):
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body.decode("utf-8"))
 

@@ -181,3 +181,5 @@ PAYSTACK_SECRET_KEY = env("PAYSTACK_TEST_SECRET")
 PAYSTACK_PUBLIC_KEY = env("PAYSTACK_TEST_PUBLIC")
 
 PAYSTACK_URL = "https://api.paystack.co"
+
+PAYSTACK_CALLBACK_URL = "http://localhost:8000/payments/paystack/callback"
