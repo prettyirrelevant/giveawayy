@@ -8,7 +8,7 @@
                 Login to Giveaway
             </div>
             <div class="card-body">
-                <form method="post" novalidate>
+                <form method="post">
                     {% csrf_token %}
                     {{ form|crispy }}
                     <p class="float-end"><a href="{% url 'accounts:forgot-password' %}">Forgot Password?</a></p>

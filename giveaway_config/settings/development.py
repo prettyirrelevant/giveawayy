@@ -12,16 +12,21 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
+import environ
 from django.contrib.messages import constants as messages
 from django.urls import reverse_lazy
 
+env = environ.Env()
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+environ.Env.read_env(str(BASE_DIR / ".env"))
 
 SECRET_KEY = "django-insecure-1kf!1b$^k3$cbg!pm(s*^omit&i_%jcctzb@dx-5g8p!oz#y!g"
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -30,9 +35,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "debug_toolbar",
+    "huey.contrib.djhuey",
     "crispy_forms",
     "crispy_bootstrap5",
     "accounts",
+    "giveaways",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -43,6 +52,19 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # "payments.middleware.PaystackMiddleware",
+]
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -68,6 +90,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "giveaways.context_processors.enums",
             ],
         },
     },
@@ -77,8 +100,11 @@ WSGI_APPLICATION = "giveaway_config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "localhost",
     }
 }
 
@@ -130,3 +156,28 @@ EMAIL_HOST = "localhost"
 EMAIL_PORT = 25
 
 DEFAULT_FROM_EMAIL = "noreply@giveaway.app"
+
+REDIS_URL = "redis://localhost:6379/4"
+
+HUEY = {
+    "name": "giveaway",
+    "huey_class": "huey.PriorityRedisExpireHuey",
+    "immediate": False,
+    "utc": True,
+    "consumer": {
+        "workers": 2,
+        "worker_type": "thread",
+        "initial_delay": 0.1,
+        "backoff": 1.15,
+        "max_delay": 10.0,
+        "scheduler_interval": 1,
+        "periodic": True,
+        "check_worker_health": True,
+    },
+}
+
+PAYSTACK_SECRET_KEY = env("PAYSTACK_TEST_SECRET")
+
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_TEST_PUBLIC")
+
+PAYSTACK_URL = "https://api.paystack.co"

@@ -67,6 +67,7 @@ def send_password_reset_email(email: str):
 
 
 def verify_uid_and_token(uid: str, token: str, type: str):
+    """Utility function that verifies uid and token in password reset and email confirmations."""
     try:
         uid = force_str(urlsafe_base64_decode(uid))
         user = User.objects.get(pk=uid)

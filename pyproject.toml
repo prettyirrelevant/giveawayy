@@ -13,8 +13,14 @@ django-crispy-forms = "^1.12.0"
 huey = "^2.4.1"
 redis = "^3.5.3"
 crispy-bootstrap5 = "^0.5"
+psycopg2-binary = "^2.9.1"
+django-formtools = "^2.3"
+bcrypt = "^3.2.0"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
+django-debug-toolbar = "^3.2.2"
+ipython = "^7.28.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -22,7 +22,7 @@ class RegistrationView(SuccessMessageMixin, generic.CreateView):
     form_class = UserRegistrationForm
     template_name = "accounts/registration.html"
     success_message = "Your account was created successfully. Check email for activation!"
-    success_url = reverse_lazy("core:index")
+    success_url = reverse_lazy("accounts:login")
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -31,11 +31,10 @@ class RegistrationView(SuccessMessageMixin, generic.CreateView):
         return context
 
     def form_valid(self, form) -> HttpResponse:
-        self.object = form.save()
+        _ = super().form_valid(form)
 
         send_activation_email(self.object.pk)
-
-        return HttpResponseRedirect(self.get_success_url())
+        return redirect(self.get_success_url())
 
 
 class LoginView(SuccessMessageMixin, _LoginView):
@@ -63,9 +62,10 @@ class ActivateAccountView(generic.View):
         return redirect(self.redirect_url)
 
 
-class ForgotPasswordView(generic.FormView):
+class ForgotPasswordView(SuccessMessageMixin, generic.FormView):
     form_class = PasswordResetRequestForm
     success_url = reverse_lazy("core:index")
+    success_message = "Check your email for the instructions to reset your password!"
     template_name = "accounts/forgot_password.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -75,19 +75,15 @@ class ForgotPasswordView(generic.FormView):
         return context
 
     def form_valid(self, form) -> HttpResponse:
-        email = form.cleaned_data.get("email")
-        send_password_reset_email(email)
+        send_password_reset_email(form.cleaned_data.get("email"))
 
-        messages.success(
-            self.request, "Check your email for the instructions to reset your password!"
-        )
-
-        return redirect(self.get_success_url())
+        return super().form_valid(form)
 
 
-class ResetPasswordView(generic.FormView):
+class ResetPasswordView(SuccessMessageMixin, generic.FormView):
     user = None
     form_class = SetPasswordForm
+    success_message = "Your password has been updated successfully!"
     success_url = reverse_lazy("core:index")
     template_name = "accounts/reset_password.html"
 
@@ -99,11 +95,9 @@ class ResetPasswordView(generic.FormView):
 
     def form_valid(self, form) -> HttpResponse:
         _ = form.save()
-
         logout(self.request)
-        messages.success(self.request, "Your password has been updated successfully!")
 
-        return redirect(self.get_success_url())
+        return super().form_valid(form)
 
     def dispatch(self, request, *args: Any, **kwargs: Any):
         uid, token = kwargs.get("uid"), kwargs.get("token")
