@@ -3,7 +3,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-10 mb-2">
-        <h3>All Giveaways</h3>
+        <h3>Search result(s) for "{{ q }}"</h3>
         <hr>
         {% if giveaways.count > 0 %}
         <div class="row row-cols-1 row-cols-md-2 g-4">
@@ -61,8 +61,7 @@
         </div>
         {% else %}
         <div class="row justify-content-center d-flex">
-            <h4 class="mt-3 fs-1 text-center">No giveaways yet!</h4>
-            <a class="mt-3 btn btn-outline-primary w-25" href="{% url 'giveaways:create-giveaway' %}">Create Giveaway</a>
+            <h4 class="mt-3 fs-1 text-center">No giveaways found!</h4>
         </div>
         {% endif %}
     </div>

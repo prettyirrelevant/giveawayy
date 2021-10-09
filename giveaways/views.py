@@ -13,18 +13,26 @@ from django.views import generic
 from formtools.wizard import views
 from payments.models import Transaction
 
-from .decorators import (giveaway_is_active, giveaway_participants_limit,
-                         participant_is_not_creator)
-from .forms import (CreateGiveawayAddPasswordForm,
-                    CreateGiveawayBasicInformationForm,
-                    CreateGiveawayMonetaryPrizeForm,
-                    CreateGiveawayQuizCategoryForm, JoinGiveawayForm,
-                    JoinGiveawayQuizForm, PrivateGiveawayEntryForm)
+from .decorators import giveaway_is_active, giveaway_participants_limit, participant_is_not_creator
+from .enums import GiveawayStatus
+from .forms import (
+    CreateGiveawayAddPasswordForm,
+    CreateGiveawayBasicInformationForm,
+    CreateGiveawayMonetaryPrizeForm,
+    CreateGiveawayQuizCategoryForm,
+    JoinGiveawayForm,
+    JoinGiveawayQuizForm,
+    PrivateGiveawayEntryForm,
+)
 from .models import Giveaway, Participant
-from .utils import (calculate_quiz_score, create_new_giveaway,
-                    format_questions_and_answers, get_quiz_url,
-                    show_add_password_if_not_public,
-                    show_quiz_step_if_category)
+from .utils import (
+    calculate_quiz_score,
+    create_new_giveaway,
+    format_questions_and_answers,
+    get_quiz_url,
+    show_add_password_if_not_public,
+    show_quiz_step_if_category,
+)
 
 r = redis.StrictRedis.from_url(settings.REDIS_URL)
 
@@ -73,7 +81,10 @@ class DisplayGiveawayView(generic.DetailView):
         _object = context["giveaway"]
         context["title"] = f"{_object.title} | Giveaway"
 
-        if _object.creator.username == self.request.user.username:
+        if (
+            _object.creator.username == self.request.user.username
+            and _object.status == GiveawayStatus.CREATED
+        ):
             headers = {
                 "content-type": "application/json",
                 "authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
@@ -117,7 +128,6 @@ class JoinGiveawayView(generic.TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-
         # This is basically a check against `get_context_data` method whereby
         # the API request to get questions does not return a status code of 200.
         if context["giveaway"].is_category_quiz and not context.get("quiz_form"):
@@ -163,12 +173,11 @@ class JoinGiveawayView(generic.TemplateView):
 
     def post(self, *args, **kwargs):
         quiz_form = None
-
         context = {}
         giveaway = self.get_context_data()["giveaway"]
 
         if giveaway.is_category_quiz:
-            quiz_form = self.get_form(self.request, self.quiz_form, "quiz_pre")
+            quiz_form = self.get_form(self.request, self.quiz_form, prefix="quiz_pre")
 
         private_giveaway_entry_form = self.get_form(
             self.request, self.private_giveaway_entry_form, "private_entry_pre"
@@ -207,17 +216,23 @@ class JoinGiveawayView(generic.TemplateView):
                 participant_exists = giveaway.participants.filter(
                     account_number=join_giveaway_form.cleaned_data.get("account_number")
                 ).exists()
+
                 if not participant_exists:
                     new_participant = Participant.objects.create(
                         **join_giveaway_form.cleaned_data, giveaway=giveaway, is_eligible=True
                     )
-                    self.request.session["account_number"] = new_participant.account_number
                     messages.success(
                         self.request,
                         "You have successfully joined this giveaway. You will contacted via email if selected. Goodluck!",
                     )
+
+                    #######################################
+                    self.request.session.pop(giveaway.slug, None)
+                    self.request.session.pop("account_number", None)
+                    #######################################
+
                     return redirect(
-                        reverse("giveaways:join-giveaway", kwargs={"slug": giveaway.slug})
+                        reverse("giveaways:view-giveaway", kwargs={"slug": giveaway.slug})
                     )
 
                 join_giveaway_form.add_error(
@@ -226,51 +241,57 @@ class JoinGiveawayView(generic.TemplateView):
 
         # First checks if there is a quiz form based on the giveaway.
         # Then checks if the form is valid.
-        elif quiz_form:
-            if quiz_form.is_valid():
-                cleaned_data = quiz_form.cleaned_data
-                redis_quiz_answers = r.get(f'quiz:{cleaned_data.get("quiz_id")}')
+        elif quiz_form and quiz_form.is_valid():
 
-                # if the quiz answers are not present in redis
-                # or the field was tampered with by the user.
-                if not redis_quiz_answers:
-                    messages.error(
-                        self.request, "Sorry, something went wrong validating quiz answers."
-                    )
-                    # delete the questions from session.
-                    del self.request.session["questions"]
+            # using POST data directly instead of `cleaned_data` property of the form.
+            # there's a bug somewhere though.
+            cleaned_data = self.request.POST.copy().dict()
+            quiz_id = cleaned_data.pop("quiz_pre-quiz_id")
 
-                    return redirect(
-                        reverse("giveaways:join-giveaway", kwargs={"slug": giveaway.slug})
-                    )
-                answers = json.loads(redis_quiz_answers)
-                score = calculate_quiz_score(cleaned_data, answers["answers"])
+            redis_quiz_answers = r.get(f"quiz:{quiz_id}")
 
-                if score >= 50:
-                    participant = get_object_or_404(
-                        Participant, account_number=self.request.session["account_number"]
-                    )
-                    participant.is_eligible = True
-                    participant.save()
-
-                    messages.success(
-                        self.request,
-                        "You have successfully joined this giveaway. You will contacted via email if selected. Goodluck!",
-                    )
-                try:
-                    del self.request.session["account_number"]
-                    del self.request.session["questions"]
-                    del self.request.session[giveaway.slug]
-                except KeyError:
-                    pass
-
+            # if the quiz answers are not present in redis
+            # or the field was tampered with by the user.
+            if not redis_quiz_answers:
                 messages.error(
-                    self.request,
-                    "Sorry, you did not get up to the required percentage. Try again",
+                    self.request, "Sorry, something went wrong validating quiz answers."
                 )
-                return redirect(reverse("giveaways:view-giveaway", kwargs={"slug": giveaway.slug}))
+                # delete the questions from session.
+                del self.request.session["questions"]
 
-            context["quiz_form"] = quiz_form
+                return redirect(reverse("giveaways:join-giveaway", kwargs={"slug": giveaway.slug}))
+
+            cleaned_data.pop("quiz_pre-timer")
+            cleaned_data.pop("csrfmiddlewaretoken")
+
+            answers = json.loads(redis_quiz_answers)
+            score = calculate_quiz_score(cleaned_data, answers["answers"])
+
+            if score >= 50:
+                participant = get_object_or_404(
+                    giveaway.participants.get_queryset(),
+                    account_number=self.request.session["account_number"],
+                )
+                participant.is_eligible = True
+                participant.save()
+
+                messages.success(
+                    self.request,
+                    "You have successfully joined this giveaway. You will contacted via email if selected. Goodluck!",
+                )
+            ########################################
+            self.request.session.pop(giveaway.slug, None)  #
+            self.request.session.pop("account_number", None)  #
+            self.request.session.pop("questions", None)  #
+            #######################################
+
+            messages.error(
+                self.request,
+                "Sorry, you did not get up to the required percentage. Try again",
+            )
+            return redirect(reverse("giveaways:view-giveaway", kwargs={"slug": giveaway.slug}))
+
+        context["quiz_form"] = quiz_form
 
         context["giveaway"] = giveaway
         context["private_giveaway_entry_form"] = private_giveaway_entry_form
@@ -281,13 +302,37 @@ class JoinGiveawayView(generic.TemplateView):
 
     def get_form(self, request, formcls, prefix):
         """Gets the form's POST data based on `request` and `prefix`"""
-        data = (
-            request.POST if prefix in [key.split("-")[0] for key in request.POST.keys()] else None
-        )
+        keys = [key.split("-")[0] for key in request.POST.keys()]
+        data = request.POST if prefix in keys else None
+
         # Each form with different params determined using `prefix`
         if prefix == "private_entry_pre":
             return formcls(data, prefix=prefix, giveaway=self.get_context_data()["giveaway"])
-        elif prefix == "quiz_pre":
-            return formcls(data, prefix=prefix, questions=self.request.session["questions"])
         elif prefix == "join_giveaway_pre":
             return formcls(data, prefix=prefix)
+        elif prefix == "quiz_pre":
+            return formcls(data, prefix=prefix, questions=self.request.session["questions"])
+
+
+class SearchGiveawayView(generic.ListView):
+    template_name = "giveaways/search.html"
+    context_object_name = "giveaways"
+    model = Giveaway
+    paginate_by = 4
+
+    def get_queryset(self):
+        query = self.request.GET.get("q")
+        queryset = (
+            self.model.objects.search(query)
+            .select_related("monetary_prize", "creator", "quiz_category")
+            .prefetch_related("participants")
+            .filter(is_public=True)
+            .order_by("-created_at")
+        )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["q"] = self.request.GET.get("q")
+
+        return context

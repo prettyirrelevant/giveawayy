@@ -17,8 +17,23 @@
                 </form>
             </div>
         </div>
+        {% comment %} If the giveaway is public/private and requires quiz and participant details have been taken {% endcomment %}
+        {% elif 'account_number' in request.session and giveaway.is_category_quiz %}
+        <h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: 30 seconds</h4>
+        <div class="card my-3">
+            <div class="card-header text-center lead fw-bold">
+                Quiz for <strong>{{ giveaway.title }}</strong>'s giveaway.
+            </div>
+            <div class="card-body">
+                <form id="quiz-form" method="post">
+                    {% csrf_token %}
+                    {{ quiz_form|crispy }}
+                    <button class="btn btn-success d-block w-100 fw-bold"> Join Giveaway</button>
+                </form>
+            </div>
+        </div>
         {% comment %} If the giveaway is public or password has already been entered {% endcomment %}
-        {% elif not 'account_number' in request.session and giveaway.is_public or giveaway.slug in request.session %}
+        {% elif giveaway.slug in request.session or giveaway.is_public %}
         <div class="card mt-5">
             <div class="card-header text-center lead fw-bold">
                 Participant's Detail for <strong>{{ giveaway.title }}</strong>'s giveaway.
@@ -28,21 +43,6 @@
                     {% csrf_token %}
                     {{ join_giveaway_form|crispy }}
                     <button class="btn btn-success d-block w-100 fw-bold">{% if giveaway.is_category_quiz %} Take Quiz {% else %} Join Giveaway {% endif %}</button>
-                </form>
-            </div>
-        </div>
-        {% comment %} If the giveaway is public/private and requires quiz and participant details have been taken {% endcomment %}
-        {% elif 'account_number' in request.session and giveaway.is_category_quiz %}
-        <h4 id="timer" class="text-left mt-4 d-flex justify-content-end">Time left: 20 seconds</h4>
-        <div class="card my-3">
-            <div class="card-header text-center lead fw-bold">
-                Quiz for <strong>{{ giveaway.title }}</strong>'s giveaway.
-            </div>
-            <div class="card-body">
-                <form id="quiz-form" method="post" novalidate>
-                    {% csrf_token %}
-                    {{ quiz_form|crispy }}
-                    <button class="btn btn-success d-block w-100 fw-bold"> Join Giveaway</button>
                 </form>
             </div>
         </div>
@@ -57,7 +57,7 @@
     const timerInput = document.querySelector("#id_quiz_pre-timer");
     const form = document.querySelector("#quiz-form");
 
-    let t = 20;
+    let t = 30;
 
     const _ = setInterval(() => {
         t -= 1;

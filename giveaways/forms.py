@@ -156,7 +156,7 @@ class JoinGiveawayQuizForm(forms.Form):
             label="quiz_id", widget=forms.HiddenInput, initial=questions["id"]
         )
         self.fields["timer"] = forms.CharField(
-            label="quiz_id", widget=forms.HiddenInput, initial=20
+            label="quiz_id", widget=forms.HiddenInput, initial=30
         )
 
         for index, question in enumerate(questions["questions"], start=1):

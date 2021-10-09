@@ -5,6 +5,7 @@ from . import views
 app_name = "giveaways"
 urlpatterns = [
     path("giveaways/new/", views.CreateGiveawayView.as_view(), name="create-giveaway"),
+    path("giveaways/search/", views.SearchGiveawayView.as_view(), name="search-giveaway"),
     path("giveaways/<slug>/", views.DisplayGiveawayView.as_view(), name="view-giveaway"),
     path("giveaways/<slug>/join/", views.JoinGiveawayView.as_view(), name="join-giveaway"),
 ]

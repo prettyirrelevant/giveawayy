@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('giveaways', '0002_add_constraint_to_account_number_and_bank'),
+        ("giveaways", "0002_add_constraint_to_account_number_and_bank"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='participant',
-            name='is_eligible',
-            field=models.BooleanField(default=False, verbose_name='is eligible'),
+            model_name="participant",
+            name="is_eligible",
+            field=models.BooleanField(default=False, verbose_name="is eligible"),
         ),
     ]

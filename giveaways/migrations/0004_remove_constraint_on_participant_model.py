@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('giveaways', '0003_add_is_eligible_column_to_participant_model'),
+        ("giveaways", "0003_add_is_eligible_column_to_participant_model"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='participant',
+            name="participant",
             unique_together=set(),
         ),
     ]
