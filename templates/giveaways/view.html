@@ -81,6 +81,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Eligibility</th>
+                            <th>Winner</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,6 +89,7 @@
                             <tr>
                                 <td>{{ participant.name }}</td>
                                 <td>{{ participant.is_eligible|colorize_giveaway_eligibility_status }}</td>
+                                <td>{{ participant.is_winner|colorize_giveaway_eligibility_status }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -125,6 +127,7 @@
       $('#participants-data').DataTable({
           columns: [
             {orderable: true, searchable: true},
+            {orderable: true, searchable: false},
             {orderable: true, searchable: false},
           ]
       });

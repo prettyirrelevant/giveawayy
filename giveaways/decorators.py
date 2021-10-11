@@ -3,6 +3,7 @@ import functools
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils import timezone
 
 from giveaways.enums import GiveawayStatus
 
@@ -29,8 +30,9 @@ def giveaway_is_active(f):
     def decorator(request, *args, **kwargs):
         slug = kwargs.get("slug")
         giveaway = get_object_or_404(Giveaway, slug=slug)
+        now = timezone.now()
 
-        if giveaway.status == GiveawayStatus.ACTIVE:
+        if giveaway.status == GiveawayStatus.ACTIVE and giveaway.end_at > now:
             return f(request, *args, **kwargs)
 
         messages.error(request, "You can only join giveaways that are active")

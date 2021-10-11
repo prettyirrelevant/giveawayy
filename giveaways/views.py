@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import generic
 from formtools.wizard import views
-from payments.models import Transaction
+from payments.services import paystack
 
 from .decorators import giveaway_is_active, giveaway_participants_limit, participant_is_not_creator
 from .enums import GiveawayStatus
@@ -85,33 +85,7 @@ class DisplayGiveawayView(generic.DetailView):
             _object.creator.username == self.request.user.username
             and _object.status == GiveawayStatus.CREATED
         ):
-            headers = {
-                "content-type": "application/json",
-                "authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
-            }
-            txn_ref = uuid.uuid4().hex
-            payload = {
-                "reference": txn_ref,
-                "amount": str(_object.monetary_prize.amount * 100),
-                "currency": "NGN",
-                "channels": ["card", "bank"],
-                "callback_url": settings.PAYSTACK_CALLBACK_URL,
-                "email": _object.creator.email,
-            }
-
-            response = requests.post(
-                f"{settings.PAYSTACK_URL}/transaction/initialize",
-                data=json.dumps(payload),
-                headers=headers,
-            )
-
-            new_transaction = Transaction.objects.create(
-                id=txn_ref,
-                giveaway=_object,
-                narration=f"top_up_{txn_ref}",
-                amount=_object.monetary_prize.amount,
-            )
-            context["topup_url"] = response.json()["data"]["authorization_url"]
+            context["topup_url"] = paystack.create_new_transaction(_object)
 
         return context
 
@@ -267,10 +241,18 @@ class JoinGiveawayView(generic.TemplateView):
             answers = json.loads(redis_quiz_answers)
             score = calculate_quiz_score(cleaned_data, answers["answers"])
 
+            account_number = self.request.session["account_number"]
+
+            ########################################
+            self.request.session.pop(giveaway.slug, None)  #
+            self.request.session.pop("account_number", None)  #
+            self.request.session.pop("questions", None)  #
+            #######################################
+
             if score >= 50:
                 participant = get_object_or_404(
                     giveaway.participants.get_queryset(),
-                    account_number=self.request.session["account_number"],
+                    account_number=account_number,
                 )
                 participant.is_eligible = True
                 participant.save()
@@ -279,11 +261,8 @@ class JoinGiveawayView(generic.TemplateView):
                     self.request,
                     "You have successfully joined this giveaway. You will contacted via email if selected. Goodluck!",
                 )
-            ########################################
-            self.request.session.pop(giveaway.slug, None)  #
-            self.request.session.pop("account_number", None)  #
-            self.request.session.pop("questions", None)  #
-            #######################################
+
+                return redirect(reverse("giveaways:view-giveaway", kwargs={"slug": giveaway.slug}))
 
             messages.error(
                 self.request,

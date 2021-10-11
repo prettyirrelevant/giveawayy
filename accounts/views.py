@@ -15,7 +15,8 @@ from django.views import generic
 from django.views.generic.base import TemplateView
 
 from .forms import PasswordResetRequestForm, UserLoginForm, UserRegistrationForm
-from .utils import send_activation_email, send_password_reset_email, verify_uid_and_token
+from .tasks import send_async_account_activation_mail, send_async_password_reset_mail
+from .utils import get_email_activation_url, get_password_reset_url, verify_uid_and_token
 
 
 class RegistrationView(SuccessMessageMixin, generic.CreateView):
@@ -33,7 +34,9 @@ class RegistrationView(SuccessMessageMixin, generic.CreateView):
     def form_valid(self, form) -> HttpResponse:
         _ = super().form_valid(form)
 
-        send_activation_email(self.object.pk)
+        activation_url = get_email_activation_url(self.object, self.request)
+        send_async_account_activation_mail.schedule((self.object.pk, activation_url), delay=2)
+
         return redirect(self.get_success_url())
 
 
@@ -75,7 +78,10 @@ class ForgotPasswordView(SuccessMessageMixin, generic.FormView):
         return context
 
     def form_valid(self, form) -> HttpResponse:
-        send_password_reset_email(form.cleaned_data.get("email"))
+        email = form.cleaned_data.get("email")
+
+        password_reset_url = get_password_reset_url(email, self.request)
+        send_async_password_reset_mail.schedule((email, password_reset_url), delay=2)
 
         return super().form_valid(form)
 
