@@ -16,6 +16,7 @@ class PaystackTopupCallbackView(generic.View):
 
         if txn_ref:
             status, message, giveaway = paystack.verify_transaction(txn_ref)
+            print(status, message, giveaway.slug)
             if status:
                 messages.success(request, message)
                 return redirect(reverse("giveaways:view-giveaway", kwargs={"slug": giveaway.slug}))

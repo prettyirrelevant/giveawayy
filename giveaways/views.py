@@ -1,5 +1,4 @@
 import json
-import uuid
 
 import redis
 import requests
@@ -12,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views import generic
 from formtools.wizard import views
 from payments.services import paystack
+from payments.tasks import populate_recipient_code
 
 from .decorators import giveaway_is_active, giveaway_participants_limit, participant_is_not_creator
 from .enums import GiveawayStatus
@@ -195,6 +195,10 @@ class JoinGiveawayView(generic.TemplateView):
                     new_participant = Participant.objects.create(
                         **join_giveaway_form.cleaned_data, giveaway=giveaway, is_eligible=True
                     )
+
+                    # generate the recipient_code for this participant
+                    populate_recipient_code.schedule((new_participant.id), delay=2)
+
                     messages.success(
                         self.request,
                         "You have successfully joined this giveaway. You will contacted via email if selected. Goodluck!",
@@ -256,6 +260,8 @@ class JoinGiveawayView(generic.TemplateView):
                 )
                 participant.is_eligible = True
                 participant.save()
+
+                populate_recipient_code.schedule((participant.id), delay=2)
 
                 messages.success(
                     self.request,

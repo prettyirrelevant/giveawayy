@@ -153,5 +153,7 @@ class Participant(models.Model):
     is_winner = models.BooleanField(_("is_winner"), default=False)
     is_paid = models.BooleanField(_("is paid"), default=False)
 
+    recipient_code = models.CharField(_("recipient code"), max_length=40, null=True)
+
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
